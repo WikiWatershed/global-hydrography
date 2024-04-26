@@ -161,3 +161,4 @@ cython_debug/
 
 ### Project-specific ignores ###
 /data_temp
+/docs_temp

@@ -4,13 +4,15 @@ channels:
   - nodefaults # Speeds solving env, by limiting the number of options
 
 dependencies:
-  - python =3.11
+  - python=3.12
 
-  # PyData
+  # Geospatial libs for vector data
   - scipy
   - geopandas >=0.14.1  #GeoParquet 1.0.0 supported
   - pyarrow  # for saving to Parquet from GeoPandas
-  - pyogrio # Vectorized vector I/O using OGR, speeds up GeoPandas!
+  - pyogrio # Vectorized vector I/O using GDAL/OGR, speeds up GeoPandas!
+        # PostGIS supported. See https://pyogrio.readthedocs.io/en/latest/supported_formats.html 
+        # and full list of drivers: https://gdal.org/drivers/vector/index.html
 
   - geojson
   - openpyxl # read/write Excel 2010+ files (.xlsx & .xlsm)
@@ -25,7 +27,7 @@ dependencies:
   - pygeohydro # HyRiver: for accessing hydrology data through web services, 
         # including WBD for HUC bounaries
 
-  # Database connections, to run first half of stage1/WikiSRAT_Demo.ipynb
+  # Database connections for exporting to PostGIS, which we may be covered by pyogrio
   # - psycopg2  
   # - sqlalchemy
 

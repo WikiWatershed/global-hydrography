@@ -1,6 +1,6 @@
 # Global Hydrography
 
-Scripts to explore and process global hydrography (stream lines and basin boundaries) for Model My Watershed
+Scripts to explore and process global hydrography (stream lines and basin boundaries) for Model My Watershed.
 
 ## Demonstration for AWSMOD1 Task 5: Add Global Watershed Shapes
 
@@ -22,12 +22,11 @@ This repo is still under development and has not yet been packaged for widesprea
 
 Follow these steps to install using the [conda](https://docs.conda.io/en/latest/) package manager.
 
-#### 1. Install the Anaconda Python Distribution
+#### 1. Install Miniconda or Anaconda Distribution
 
-We recommend installing the [latest release](https://docs.anaconda.com/anaconda/reference/release-notes/) of [**Anaconda Individual Edition**](https://www.anaconda.com/distribution), which includes the conda, a complete Python (and R) data science stack, and the helpful Anaconda Navigator GUI.
-- Follow [Anaconda Installation](https://docs.anaconda.com/anaconda/install/) documentation.
+We recommend installing the light-weight [Miniconda](https://docs.conda.io/projects/miniconda/en/latest/) that includes Python, the [conda](https://conda.io/docs/) environment and package management system, and their dependencies.
 
-A lighter-weight alternative is to install [Miniconda](https://docs.conda.io/en/latest/miniconda.html).
+If you have already installed the [**Anaconda Distribution**](https://www.anaconda.com/download), you can use it to complete the next steps, but you may need to [update to the latest version](https://docs.anaconda.com/free/anaconda/install/update-version/).
 
 #### 2. Clone or Download this Repository
 
@@ -35,31 +34,29 @@ From this Github page, click on the green "Code" dropdown button near the upper 
 
 Place your copy of this repo in any convenient location on your computer.
 
-#### 3. Create a Conda Environment for this Repository (optional)
+#### 3. Create a Conda Environment for this Repository
 
-Although Pollution Assessment can be run from the default `base` environment created by Anaconda, we recommend creating a custom environment that includes the exact combination of software dependencies that we've used in development and testing.
+We recommend creating a custom virtual environment with the same software dependencies that we've used in development and testing, as listed in the [`environment.yml`](environment.yml) file. 
 
-Create the `drwi_pa` environment from our [`environment.yml`](environment.yml) file, which lists all primary dependencies, using one of these approaches: 
-1. Use the **Import** button on [Anaconda Navigator's Environments tab](https://docs.anaconda.com/anaconda/navigator/overview/#environments-tab), or 
-2. Use the following [`conda create`](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#managing-environments) command in your terminal or console,  replacing `path/environment.yml` with the full file pathway to the [`environment.yml`](environment.yml) file in the local cloned repository.
+Create a `nuveen_esg` environment using this [conda](https://conda.io/docs/) command in your terminal or Anaconda Prompt console. If necessary, replace `environment.yml` with the full file pathway to the `environment.yml` file in the local cloned repository.
 
 ```shell
-conda env create --file path/environment.yml
+conda env create --file environment.yml
 ```
 
-To update your environment, either use Anaconda Navigator, or run the following command:  
+Alternatively, use the faster [`libmamba` solver](https://conda.github.io/conda-libmamba-solver/getting-started/) with:
 
 ```shell
-conda env update --file path/environment.yml --prune
+conda env create -f environment.yml --solver=libmamba
 ```
 
-or for a clean re-install:
+Activate the environment using the instructions printed by conda after the environment is created successfully.
+
+To update your environment run the following command:  
 
 ```shell
-conda env create --file path/environment.yml --force
+conda env update --file environment.yml --solver=libmamba --prune 
 ```
-
-Optionally, if you have installed [`conda-libmamba-solver`](https://conda.github.io/conda-libmamba-solver/getting-started/) into your base environment, you can also add the `--solver=libmamba` option flag to any fo the commands above.
 
 
 #### 4. Add your Repo's Path to Miniconda site-packages
@@ -72,5 +69,5 @@ To have access to this repository's modules in your Python environments, it is n
     conda develop /path/to/module/
     ```
 
-You should now be able to run the Tutorials and create your own Jupyter Notebooks!
+You should now be able to run the examples and create your own Jupyter Notebooks!
 
