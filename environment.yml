@@ -13,9 +13,13 @@ dependencies:
   - pyogrio # Vectorized vector I/O using GDAL/OGR, speeds up GeoPandas!
         # PostGIS supported. See https://pyogrio.readthedocs.io/en/latest/supported_formats.html 
         # and full list of drivers: https://gdal.org/drivers/vector/index.html
-
   - geojson
   - openpyxl # read/write Excel 2010+ files (.xlsx & .xlsm)
+  # For MacOS
+  # - qgis # FoDesktop GIS within the same env and dependancies
+  - libgdal-arrow-parquet # required for GeoParquet in QGIS on Mac
+      # https://medium.com/radiant-earth-insights/the-geoparquet-ecosystem-at-1-0-0-96dee8ce9201
+      # https://github.com/qgis/QGIS-Mac-Packager/issues/156
 
   # Remote Access
   - fsspec
