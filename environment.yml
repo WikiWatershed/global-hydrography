@@ -4,12 +4,13 @@ channels:
   - nodefaults # Speeds solving env, by limiting the number of options
 
 dependencies:
-  - python=3.12
+  - python=3.11  # geoarrow not supported for 3.12 as of May 17, 2024
 
   # Geospatial libs for vector data
   - scipy
-  - geopandas >=0.14.1  #GeoParquet 1.0.0 supported
-  - pyarrow  # for saving to Parquet from GeoPandas
+  - geopandas >=0.14.1  # supports GeoParquet 1.0.0
+  - geoarrow-pyarrow  # high-performance geoarrow dtype for geometry, integrated with lonboard
+  - gdal >=3.8.5  # Note: 3.9 officially supports geoarrow, but pyogrio not quite the as of May 17, 2024
   - pyogrio # Vectorized vector I/O using GDAL/OGR, speeds up GeoPandas!
         # PostGIS supported. See https://pyogrio.readthedocs.io/en/latest/supported_formats.html 
         # and full list of drivers: https://gdal.org/drivers/vector/index.html
@@ -25,8 +26,8 @@ dependencies:
   - fsspec
   - s3fs  # Access to Amazon S3 filesystem
 
-
   # Hydro Data Tools
+  - networkx  # For building graphs for watershed network analysis
   - pynhd  # HyRiver: provides access to NHD+ V2 data through NLDI and WaterData web services
   - pygeohydro # HyRiver: for accessing hydrology data through web services, 
         # including WBD for HUC bounaries
@@ -40,7 +41,7 @@ dependencies:
   - datashader
   - panel >=0.14 # Major update for dashboarding
   - selenium # for HoloViz/bokeh.io image export functions
-  - lonboard
+  - lonboard  # fast geospatial vector visualization, built on geoarrow
   # - contextily  # retrieve tile maps from the internet. Installs RasterIO.
   - cmasher # Adds function to subset colormaps, including from HoloViz's colorcet
 
@@ -67,7 +68,7 @@ dependencies:
 
   # package management
   - conda
-  # - conda-build
+  - conda-build
   - conda-libmamba-solver
 
   # PIP install requirements only if it is not  possible with conda
