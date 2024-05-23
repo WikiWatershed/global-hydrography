@@ -1,6 +1,9 @@
 '''
-Global Hydrography funtions for fetching and saving data.
+Global Hydrography functions for fetching and saving data.
 '''
+
+# Imports
+
 
 # HydroBASINS Identifier & Region (Section 3.1 in Tech Docs)
 hybas_region_dict = {
@@ -13,3 +16,6 @@ hybas_region_dict = {
     'na': 'North America and Caribbean sa South America',
     'si': 'Siberia',
 }
+
+def get_tdxhydro():
+    return 1

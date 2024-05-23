@@ -2,12 +2,14 @@
 
 Scripts to explore and process global hydrography (stream lines and basin boundaries) for Model My Watershed.
 
-TDX-Hydro is the best available global hydrographic datasuite, released in 2022 by the [US National Geospatial-Intelligence Agency (NGA)](https://www.nga.mil) in collaboration with USACE ERDC and NASA, and derived from the 12 m resolution TanDEM-X elevation model.
+TDX-Hydro is the best available global hydrographic datasuite, first released to the public in summer of 2023 by the [US National Geospatial-Intelligence Agency (NGA)](https://www.nga.mil) in collaboration with USACE ERDC and NASA, and derived from the 12 m resolution TanDEM-X elevation data.
 - McCormack et al. 2022. [Validation of TDX-Hydro; a global, TanDEM-X derived, 12m resolution hydrographic data suite](https://agu.confex.com/agu/fm22/meetingapp.cgi/Paper/1119749). AGU Abstract. 
+- Data and technical documentation are downloadable from the NGA Office for Geomatics website, https://earth-info.nga.mil/, under the "Geosciences" tab.
 
-The [GEOGlOWS ECMWF Streamflow Model](https://geoglows.ecmwf.int/) project is building their [v2.0 release](https://data.geoglows.org/geoglows-2-0) around a [modified version of TDX-Hydro](https://data.geoglows.org/dataset-descriptions/gis-streams-and-catchments) with added attributes (i.e. topological order) and slightly simplified headwater streamlines for improved modeling and mapping.
+The [GEOGlOWS ECMWF Streamflow Model](https://geoglows.ecmwf.int/) project is building their [v2.0 release](https://data.geoglows.org/geoglows-2-0) around a [modified version of TDX-Hydro](https://data.geoglows.org/dataset-descriptions/gis-streams-and-catchments) with added attributes (i.e. topological order) and slightly simplified headwater streamlines for improved modeling and mapping. The [GEOGLOWS v2 Data Guide](https://data.geoglows.org) provides useful information and tutorials relevant to using TDX-Hydro data.
 
-TDX-Hydro was built around [HydroSHEDS v1 HydroBASINS](https://www.hydrosheds.org/products/hydrobasins) Level 2 boundaries (continental sub-units).
+TDX-Hydro was built around [HydroSHEDS v1 HydroBASINS](https://www.hydrosheds.org/products/hydrobasins) Level 2 boundaries (continental sub-units). [HydroSHEDS v2](https://www.hydrosheds.org/hydrosheds-v2) will be developed from the same TanDEM-X elevation data used by TDX-Hydro.
+
 
 ## Demonstration for AWSMOD1 Task 5: Add Global Watershed Shapes
 
