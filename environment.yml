@@ -4,14 +4,15 @@ channels:
   - nodefaults # Speeds solving env, by limiting the number of options
 
 dependencies:
-  - python=3.11  # geoarrow not supported for 3.12 as of May 17, 2024
+  - python=3.11  # geoarrow-pyarrow not supported for 3.12 as of May 17, 2024
 
   # Geospatial libs for vector data
   - scipy
   - geopandas >=0.14.1  # supports GeoParquet 1.0.0
   - geoarrow-pyarrow  # high-performance geoarrow dtype for geometry, integrated with lonboard
-  - gdal >=3.8.5  # Note: 3.9 officially supports geoarrow, but pyogrio not quite the as of May 17, 2024
-  - pyogrio # Vectorized vector I/O using GDAL/OGR, speeds up GeoPandas!
+  - gdal >=3.8.5  # Note: 3.9 officially supports geoarrow, but rasterio 1.3.x does not as of May 22, 2024
+        # rasterio 1.4 should support gdal 3.9
+  - pyogrio >=0.8 # Vectorized vector I/O using GDAL/OGR, speeds up GeoPandas!
         # PostGIS supported. See https://pyogrio.readthedocs.io/en/latest/supported_formats.html 
         # and full list of drivers: https://gdal.org/drivers/vector/index.html
   - geojson
