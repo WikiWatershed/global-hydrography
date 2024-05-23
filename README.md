@@ -2,6 +2,13 @@
 
 Scripts to explore and process global hydrography (stream lines and basin boundaries) for Model My Watershed.
 
+TDX-Hydro is the best available global hydrographic datasuite, released in 2022 by the [US National Geospatial-Intelligence Agency (NGA)](https://www.nga.mil) in collaboration with USACE ERDC and NASA, and derived from the 12 m resolution TanDEM-X elevation model.
+- McCormack et al. 2022. [Validation of TDX-Hydro; a global, TanDEM-X derived, 12m resolution hydrographic data suite](https://agu.confex.com/agu/fm22/meetingapp.cgi/Paper/1119749). AGU Abstract. 
+
+The [GEOGlOWS ECMWF Streamflow Model](https://geoglows.ecmwf.int/) project is building their [v2.0 release](https://data.geoglows.org/geoglows-2-0) around a [modified version of TDX-Hydro](https://data.geoglows.org/dataset-descriptions/gis-streams-and-catchments) with added attributes (i.e. topological order) and slightly simplified headwater streamlines for improved modeling and mapping.
+
+TDX-Hydro was built around [HydroSHEDS v1 HydroBASINS](https://www.hydrosheds.org/products/hydrobasins) Level 2 boundaries (continental sub-units).
+
 ## Demonstration for AWSMOD1 Task 5: Add Global Watershed Shapes
 
 Project Objectives: Develop Model My Watershed hydrographic capabilities over most of the world to:
