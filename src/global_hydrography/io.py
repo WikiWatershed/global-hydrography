@@ -68,10 +68,12 @@ def init_fsspec_filesystem() -> fsspec.filesystem:
     # originally running into connection timeout issues
     # fspec's implementation of HTTPFileSystem provides user ability to set parameters
     # for the underlying aiohttp.ClientSession. We'll try explicitly setting timeout limit
+    connector = aiohttp.TCPConnector(limit=2)
     client_timeout = aiohttp.ClientTimeout(
         total=0
     )  # total of 0 should indicate no timeouts
     client_kwargs = {
+        "connector": connector,
         "timeout": client_timeout,
     }
     return fsspec.filesystem("http", asynchronous=True, client_kwargs=client_kwargs)
