@@ -77,13 +77,17 @@ def init_fsspec_filesystem() -> fsspec.filesystem:
     return fsspec.filesystem("http", asynchronous=True, client_kwargs=client_kwargs)
 
 
-def create_data_directory() -> Path:
-    working_dir = Path.cwd()
-    project_dir = working_dir.parent
-    data_dir = (
-        project_dir / "global-hydrography/data_temp"
-    )  # Temporary data directory to be .gitignored
-    if not data_dir.exists():  # create if necessary
+def create_data_directory(data_dir: str = None) -> Path:
+    if data_dir:
+        data_dir = Path(data_dir)
+    else:
+        working_dir = Path.cwd()
+        project_dir = working_dir.parent
+        data_dir = (
+            project_dir / "global-hydrography/data_temp"
+        )  # Temporary data directory to be .gitignored
+    # create the directory if necessary
+    if not data_dir.exists():
         os.mkdir(data_dir)
     return data_dir
 
