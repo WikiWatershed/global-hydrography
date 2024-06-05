@@ -1,34 +1,37 @@
-'''
+"""
 Global Hydrography functions for fetching and saving data.
-'''
+"""
 
 # Imports
+from typing import Iterable
+
+import os.path
+from pathlib import Path
+import shutil
+import sys
+from tempfile import TemporaryDirectory
+import time
+from urllib.parse import urlparse
+
 import fsspec
 import asyncio
 import geopandas as gpd
-import time
-from pathlib import Path
 import requests
 import aiohttp
-import aiofiles
-import os.path
-from tempfile import TemporaryDirectory
-import sys
-from urllib.parse import urlparse
-import shutil
+
 
 def get_tdxhydro():
-    root_url = 'https://earth-info.nga.mil/php/download.php'
-    hydrobasins_filename = 'hydrobasins_level2'
-    hydrobasins_url = f'{root_url}?file={hydrobasins_filename}'
+    root_url = "https://earth-info.nga.mil/php/download.php"
+    hydrobasins_filename = "hydrobasins_level2"
+    hydrobasins_url = f"{root_url}?file={hydrobasins_filename}"
 
 
 def get_hybas_ids():
-    root_url = 'https://earth-info.nga.mil/php/download.php'
-    hydrobasins_filename = 'hydrobasins_level2'
-    hydrobasins_url = f'{root_url}?file={hydrobasins_filename}'
-    fsspec_http = fsspec.filesystem(protocol='http', timeout=None)
-    
+    root_url = "https://earth-info.nga.mil/php/download.php"
+    hydrobasins_filename = "hydrobasins_level2"
+    hydrobasins_url = f"{root_url}?file={hydrobasins_filename}"
+    fsspec_http = fsspec.filesystem(protocol="http", timeout=None)
+
     try:
         fsspec_http.exists(hydrobasins_url)
     except:
@@ -36,69 +39,89 @@ def get_hybas_ids():
 
     working_dir = Path.cwd()
     project_dir = working_dir.parent
-    data_dir = project_dir / 'global-hydrography/data_temp'
+    data_dir = project_dir / "global-hydrography/data_temp"
     data_dir.mkdir(parents=True, exist_ok=True)
 
-    file_name = hydrobasins_filename + '.geojson'
+    file_name = hydrobasins_filename + ".geojson"
     local_filepath = data_dir / file_name
 
     fsspec_http.get_file(hydrobasins_url, str(local_filepath))
-    hydro_gdf = gpd.read_file('../data_temp/hydrobasins_level2.geojson')
-    hybas_ids = hydro_gdf['HYBAS_ID'].tolist()
-    
+    hydro_gdf = gpd.read_file("../data_temp/hydrobasins_level2.geojson")
+    hybas_ids = hydro_gdf["HYBAS_ID"].tolist()
+
     return hybas_ids
 
 
-async def download_file(fs, url, filepath):
+async def download_file(
+    filesystem: fsspec.filesystem,
+    url: str,
+    filepath: str,
+) -> None:
     try:
-        await fs._get_file(url, str(filepath))
+        await filesystem._get_file(url, str(filepath))
         print(f"Downloaded {filepath}")
     except Exception as e:
         print(f"Failed to download {url}: {e}")
 
 
-async def main(hybas_ids):
-    print('Starting main')
-    fs = fsspec.filesystem('http', asynchronous=True, timeout=None)
-    session = await fs.set_session()
-    root_url = 'https://earth-info.nga.mil/php/download.php'
+def init_fsspec_filesystem() -> fsspec.filesystem:
+    # originally running into connection timeout issues
+    # fspec's implementation of HTTPFileSystem provides user ability to set parameters
+    # for the underlying aiohttp.ClientSession. We'll try explicitly setting timeout limit
+    client_timeout = aiohttp.ClientTimeout(
+        total=0
+    )  # total of 0 should indicate no timeouts
+    client_kwargs = {
+        "timeout": client_timeout,
+    }
+    return fsspec.filesystem("http", asynchronous=True, client_kwargs=client_kwargs)
+
+
+def create_data_directory() -> Path:
     working_dir = Path.cwd()
     project_dir = working_dir.parent
-    data_dir = project_dir / 'global-hydrography/data_temp'  # Temporary data directory to be .gitignored
-    print(data_dir)
+    data_dir = (
+        project_dir / "global-hydrography/data_temp"
+    )  # Temporary data directory to be .gitignored
+    if not data_dir.exists():  # create if necessary
+        os.mkdir(data_dir)
+    return data_dir
 
-    
+
+async def main(hybas_ids: Iterable[int | str]):
+    filesystem = init_fsspec_filesystem()
+    session = await filesystem.set_session()
+
+    root_url = "https://earth-info.nga.mil/php/download.php"
+
+    data_dir = create_data_directory()
+
     tasks = []
     for hybas_id in hybas_ids:
         # Construct the URLs
-        basin_url = f'{root_url}?file={hybas_id}-basins-gpkg'
-        stream_url = f'{root_url}?file={hybas_id}-streamnet-gpkg'
-        
+        basin_url = f"{root_url}?file={hybas_id}-basins-gpkg"
+        stream_url = f"{root_url}?file={hybas_id}-streamnet-gpkg"
+
         # Construct the file paths
-        basin_filepath = data_dir / f'TDX_streamreach_basins_{hybas_id}_01.gpkg'
-        stream_filepath = data_dir / f'TDX_streamnet_basins_{hybas_id}_01.gpkg'
-        
+        basin_filepath = data_dir / f"TDX_streamreach_basins_{hybas_id}_01.gpkg"
+        stream_filepath = data_dir / f"TDX_streamnet_basins_{hybas_id}_01.gpkg"
+
         # Add download tasks
-        tasks.append(download_file(fs, basin_url, basin_filepath))
-        tasks.append(download_file(fs, stream_url, stream_filepath))
-    
+        tasks.append(download_file(filesystem, basin_url, basin_filepath))
+        tasks.append(download_file(filesystem, stream_url, stream_filepath))
+
     # Run all tasks concurrently
     await asyncio.gather(*tasks)
-    
     await session.close()  # Explicitly close the session
 
 
-def run_main():
+if __name__ == "__main__":
     start_time = time.time()
+    hybas_ids = [1020000010, 1020011530]
     # hybas_ids = get_hybas_ids()
-    hybas_ids = [1020000010,1020011530]
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main(hybas_ids))
+    asyncio.run(main(hybas_ids))
     end_time = time.time()
     print(end_time - start_time)
-
-
-run_main()
 
 
 # Another method, does not currently work:
