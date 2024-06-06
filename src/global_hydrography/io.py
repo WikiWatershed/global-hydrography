@@ -28,9 +28,7 @@ class TDXHydroDownloader:
         self.__filesystem: fsspec.filesystem = (
             filesystem if filesystem else self.init_fsspec_filesystem()
         )
-        self.__download_dir: Path = (
-            download_dir if download_dir else self.create_data_directory()
-        )
+        self.__download_dir: Path = self.create_data_directory(download_dir)
 
     @staticmethod
     def init_fsspec_filesystem(
@@ -72,28 +70,29 @@ class TDXHydroDownloader:
             os.mkdir(data_dir)
         return data_dir
 
-    def get_hybas_ids(self, hydrobasins_filename: str = "hydrobasins_level1"):
+    def get_hybas_ids(
+        self, hydrobasins_filename: str = "hydrobasins_level2"
+    ) -> list[str]:
         """Downloads the large hydrobasins file and extracts the HYBAS ids from the file"""
         hydrobasins_url = f"{self.ROOT_URL}?file={hydrobasins_filename}"
+        logger.debug(f"Downloading from {hydrobasins_url}")
+        fs = fsspec.filesystem("http", asynchronous=False)  # use synchronous filesystem
 
-        # confirm the file exists
         try:
-            self.__filesystem.exists(hydrobasins_url)
-        except Exception:
+            fs.exists(hydrobasins_url)
+            # download the file
+            file_name = hydrobasins_filename + ".geojson"
+            local_filepath = self.__download_dir / file_name
+            fs.get_file(hydrobasins_url, str(local_filepath))
+            # parse file to extract HYDAS ids
+            hydro_gdf = gpd.read_file(local_filepath)
+            hybas_ids = hydro_gdf["HYBAS_ID"].tolist()
+            return hybas_ids
+        except Exception as e:
             logger.error(
-                f"Unable to locate file at {hydrobasins_url}. Provide override to default with `hydrobasins_url` argument, or check Basin GeoJSON File with ID Numbers"
+                f"Unable to locate or parse file at {hydrobasins_url}. Provide override to default with `hydrobasins_url` argument, or check Basin GeoJSON File with ID Numbers"
             )
-
-        # download the file
-        file_name = hydrobasins_filename + ".geojson"
-        local_filepath = self.__download_dir / file_name
-        self.__filesystem.get_file(hydrobasins_url, str(local_filepath))
-
-        # parse file to extract HYDAS ids
-        hydro_gdf = gpd.read_file("../data_temp/hydrobasins_level1.geojson")
-        hybas_ids = hydro_gdf["HYBAS_ID"].tolist()
-
-        return hybas_ids
+            raise e
 
     async def __download_file(
         self,
@@ -103,6 +102,7 @@ class TDXHydroDownloader:
         url = f"{self.ROOT_URL}?file={file_name}-{extension}"
         save_path = self.__download_dir.joinpath(f"{file_name}.{extension}")
         try:
+
             logger.info(f"Attempting download of {url}")
             await self.__filesystem._get_file(url, str(save_path))
             logger.info(f"Downloaded file and save to {save_path}")
@@ -133,13 +133,13 @@ async def main(hybas_ids: Iterable[int | str] = None, datasets: Iterable[str] = 
     if not datasets:
         datasets = ("basins", "streamnet")
     if not hybas_ids:
-        hybas_ids - downloader.get_hybas_ids()
+        hybas_ids = downloader.get_hybas_ids()
     await downloader.download_files(hybas_ids, datasets)
 
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     start_time = time.time()
-    asyncio.run(main(hybas_ids=[1020000010]))
+    asyncio.run(main())
     end_time = time.time()
     print(end_time - start_time)
