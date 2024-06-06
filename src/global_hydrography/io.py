@@ -2,22 +2,20 @@
 Global Hydrography functions for fetching and saving data.
 """
 
-# Imports
 from typing import Iterable
 
-import os.path
-from pathlib import Path
-import shutil
+import os
 import sys
-from tempfile import TemporaryDirectory
+from pathlib import Path
 import time
-from urllib.parse import urlparse
+import logging
 
 import fsspec
 import asyncio
 import geopandas as gpd
-import requests
 import aiohttp
+
+logger = logging.getLogger(__name__)
 
 
 def get_tdxhydro():
@@ -58,10 +56,11 @@ async def download_file(
     filepath: str,
 ) -> None:
     try:
-        await filesystem._get_file(url, str(filepath))
-        print(f"Downloaded {filepath}")
+        logger.info(f"Attempting download of {url}")
+        # await filesystem._get_file(url, str(filepath))
+        logger.info(f"Downloaded {filepath}")
     except Exception as e:
-        print(f"Failed to download {url}: {e}")
+        logger.error(f"Failed to download {url}, with exception `{e}`")
 
 
 def init_fsspec_filesystem() -> fsspec.filesystem:
@@ -122,66 +121,10 @@ async def main(hybas_ids: Iterable[int | str]):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     start_time = time.time()
     hybas_ids = [1020000010, 1020011530]
     # hybas_ids = get_hybas_ids()
     asyncio.run(main(hybas_ids))
     end_time = time.time()
     print(end_time - start_time)
-
-
-# Another method, does not currently work:
-
-# async def get_content_length(url):
-#     async with aiohttp.ClientSession() as session:
-#         async with session.head(url) as request:
-#             return request.content_length
-
-
-# def parts_generator(size, start=0, part_size=10 * 1024 ** 2):
-#     while size - start > part_size:
-#         yield start, start + part_size
-#         start += part_size
-#     yield start, size
-
-
-# async def download(url, headers, save_path):
-#     async with aiohttp.ClientSession(headers=headers) as session:
-#         async with session.get(url) as request:
-#             file = await aiofiles.open(save_path, 'wb')
-#             await file.write(await request.content.read())
-
-
-# async def process(url):
-#     filename = os.path.basename(urlparse(url).path)
-#     tmp_dir = TemporaryDirectory(prefix=filename, dir=os.path.abspath('.'))
-#     print(tmp_dir)
-#     size = await get_content_length(url)
-#     tasks = []
-#     file_parts = []
-#     for number, sizes in enumerate(parts_generator(size)):
-#         part_file_name = os.path.join(tmp_dir.name, f'{filename}.part{number}')
-#         file_parts.append(part_file_name)
-#         tasks.append(download(url, {'Range': f'bytes={sizes[0]}-{sizes[1]}'}, part_file_name))
-#     await asyncio.gather(*tasks)
-#     with open(filename, 'wb') as wfd:
-#         for f in file_parts:
-#             with open(f, 'rb') as fd:
-#                 shutil.copyfileobj(fd, wfd)
-
-
-# async def main():
-#     urls = ['https://earth-info.nga.mil/php/download.php?file=1020000010-streamnet-gpkg',
-#             'https://earth-info.nga.mil/php/download.php?file=1020011530-streamnet-gpkg',
-#             'https://earth-info.nga.mil/php/download.php?file=1020000010-basins-gpkg',
-#             'https://earth-info.nga.mil/php/download.php?file=1020011530-basins-gpkg']
-#     await asyncio.gather(*[process(url) for url in urls])
-
-
-# if __name__ == '__main__':
-#     import time
-
-#     start_code = time.monotonic()
-#     loop = asyncio.get_event_loop()
-#     loop.run_until_complete(main())
-#     print(f'{time.monotonic() - start_code} seconds!')
