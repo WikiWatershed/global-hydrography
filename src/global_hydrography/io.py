@@ -18,113 +18,128 @@ import aiohttp
 logger = logging.getLogger(__name__)
 
 
-def get_tdxhydro():
-    root_url = "https://earth-info.nga.mil/php/download.php"
-    hydrobasins_filename = "hydrobasins_level2"
-    hydrobasins_url = f"{root_url}?file={hydrobasins_filename}"
+class TDXHydroDownloader:
+
+    ROOT_URL = "https://earth-info.nga.mil/php/download.php"
+
+    def __init__(
+        self, filesystem: fsspec.filesystem = None, download_dir: Path = None
+    ) -> None:
+        self.__filesystem: fsspec.filesystem = (
+            filesystem if filesystem else self.init_fsspec_filesystem()
+        )
+        self.__download_dir: Path = (
+            download_dir if download_dir else self.create_data_directory()
+        )
+
+    @staticmethod
+    def init_fsspec_filesystem(
+        connection_limit: int = 2, timeout: int = 0
+    ) -> fsspec.filesystem:
+        """Initializes a HTTP Filesystem object for download of TDXHydroData"""
+
+        # originally we were running into connection timeout issues
+        # fspec's implementation of HTTPFileSystem provides user ability to set parameters
+        # for the underlying aiohttp.ClientSession. Though it turned out the connection was
+        # being closed on the hosts end
+        client_timeout = aiohttp.ClientTimeout(
+            total=timeout
+        )  # total of 0 should indicate no timeouts
+
+        # to reduce likelihood of host closing connections, we want to decrease the number of
+        # simultaneous connections we have. Testing found that <2 connections was reasonably stable
+        # but I will still provide user ability to set this limit if desired.
+        connector = aiohttp.TCPConnector(limit=connection_limit)
+
+        client_kwargs = {
+            "connector": connector,
+            "timeout": client_timeout,
+        }
+        return fsspec.filesystem("http", asynchronous=True, client_kwargs=client_kwargs)
+
+    @staticmethod
+    def create_data_directory(data_dir: str = None) -> Path:
+        if data_dir:
+            data_dir = Path(data_dir)
+        else:
+            working_dir = Path.cwd()
+            project_dir = working_dir.parent
+            data_dir = (
+                project_dir / "global-hydrography/data_temp"
+            )  # Temporary data directory to be .gitignored
+        # create the directory if necessary
+        if not data_dir.exists():
+            os.mkdir(data_dir)
+        return data_dir
+
+    def get_hybas_ids(self, hydrobasins_filename: str = "hydrobasins_level1"):
+        """Downloads the large hydrobasins file and extracts the HYBAS ids from the file"""
+        hydrobasins_url = f"{self.ROOT_URL}?file={hydrobasins_filename}"
+
+        # confirm the file exists
+        try:
+            self.__filesystem.exists(hydrobasins_url)
+        except Exception:
+            logger.error(
+                f"Unable to locate file at {hydrobasins_url}. Provide override to default with `hydrobasins_url` argument, or check Basin GeoJSON File with ID Numbers"
+            )
+
+        # download the file
+        file_name = hydrobasins_filename + ".geojson"
+        local_filepath = self.__download_dir / file_name
+        self.__filesystem.get_file(hydrobasins_url, str(local_filepath))
+
+        # parse file to extract HYDAS ids
+        hydro_gdf = gpd.read_file("../data_temp/hydrobasins_level1.geojson")
+        hybas_ids = hydro_gdf["HYBAS_ID"].tolist()
+
+        return hybas_ids
+
+    async def __download_file(
+        self,
+        file_name: str,
+        extension: str = "gpkg",
+    ) -> None:
+        url = f"{self.ROOT_URL}?file={file_name}-{extension}"
+        save_path = self.__download_dir.joinpath(f"{file_name}.{extension}")
+        try:
+            logger.info(f"Attempting download of {url}")
+            await self.__filesystem._get_file(url, str(save_path))
+            logger.info(f"Downloaded file and save to {save_path}")
+        except Exception as e:
+            logger.error(f"Failed to download {url}, with exception `{e}`")
+
+    async def download_files(
+        self,
+        hybas_ids: Iterable[str | int],
+        dataset_names: Iterable[str],
+    ) -> None:
+        """Coroutine to download corresponding files"""
+        session = await self.__filesystem.set_session()
+
+        tasks = []
+        for hybas_id in hybas_ids:
+            for dataset in dataset_names:
+                file_name = f"{hybas_id}-{dataset}"
+                tasks.append(self.__download_file(file_name))
+
+        # Run all tasks concurrently
+        await asyncio.gather(*tasks)
+        await session.close()  # Explicitly close the session
 
 
-def get_hybas_ids():
-    root_url = "https://earth-info.nga.mil/php/download.php"
-    hydrobasins_filename = "hydrobasins_level2"
-    hydrobasins_url = f"{root_url}?file={hydrobasins_filename}"
-    fsspec_http = fsspec.filesystem(protocol="http", timeout=None)
-
-    try:
-        fsspec_http.exists(hydrobasins_url)
-    except:
-        print("Check Basin GeoJSON File with ID Numbers URL")
-
-    working_dir = Path.cwd()
-    project_dir = working_dir.parent
-    data_dir = project_dir / "global-hydrography/data_temp"
-    data_dir.mkdir(parents=True, exist_ok=True)
-
-    file_name = hydrobasins_filename + ".geojson"
-    local_filepath = data_dir / file_name
-
-    fsspec_http.get_file(hydrobasins_url, str(local_filepath))
-    hydro_gdf = gpd.read_file("../data_temp/hydrobasins_level2.geojson")
-    hybas_ids = hydro_gdf["HYBAS_ID"].tolist()
-
-    return hybas_ids
-
-
-async def download_file(
-    filesystem: fsspec.filesystem,
-    url: str,
-    filepath: str,
-) -> None:
-    try:
-        logger.info(f"Attempting download of {url}")
-        # await filesystem._get_file(url, str(filepath))
-        logger.info(f"Downloaded {filepath}")
-    except Exception as e:
-        logger.error(f"Failed to download {url}, with exception `{e}`")
-
-
-def init_fsspec_filesystem() -> fsspec.filesystem:
-    # originally running into connection timeout issues
-    # fspec's implementation of HTTPFileSystem provides user ability to set parameters
-    # for the underlying aiohttp.ClientSession. We'll try explicitly setting timeout limit
-    connector = aiohttp.TCPConnector(limit=2)
-    client_timeout = aiohttp.ClientTimeout(
-        total=0
-    )  # total of 0 should indicate no timeouts
-    client_kwargs = {
-        "connector": connector,
-        "timeout": client_timeout,
-    }
-    return fsspec.filesystem("http", asynchronous=True, client_kwargs=client_kwargs)
-
-
-def create_data_directory(data_dir: str = None) -> Path:
-    if data_dir:
-        data_dir = Path(data_dir)
-    else:
-        working_dir = Path.cwd()
-        project_dir = working_dir.parent
-        data_dir = (
-            project_dir / "global-hydrography/data_temp"
-        )  # Temporary data directory to be .gitignored
-    # create the directory if necessary
-    if not data_dir.exists():
-        os.mkdir(data_dir)
-    return data_dir
-
-
-async def main(hybas_ids: Iterable[int | str]):
-    filesystem = init_fsspec_filesystem()
-    session = await filesystem.set_session()
-
-    root_url = "https://earth-info.nga.mil/php/download.php"
-
-    data_dir = create_data_directory()
-
-    tasks = []
-    for hybas_id in hybas_ids:
-        # Construct the URLs
-        basin_url = f"{root_url}?file={hybas_id}-basins-gpkg"
-        stream_url = f"{root_url}?file={hybas_id}-streamnet-gpkg"
-
-        # Construct the file paths
-        basin_filepath = data_dir / f"TDX_streamreach_basins_{hybas_id}_01.gpkg"
-        stream_filepath = data_dir / f"TDX_streamnet_basins_{hybas_id}_01.gpkg"
-
-        # Add download tasks
-        tasks.append(download_file(filesystem, basin_url, basin_filepath))
-        tasks.append(download_file(filesystem, stream_url, stream_filepath))
-
-    # Run all tasks concurrently
-    await asyncio.gather(*tasks)
-    await session.close()  # Explicitly close the session
+async def main(hybas_ids: Iterable[int | str] = None, datasets: Iterable[str] = None):
+    downloader = TDXHydroDownloader()
+    if not datasets:
+        datasets = ("basins", "streamnet")
+    if not hybas_ids:
+        hybas_ids - downloader.get_hybas_ids()
+    await downloader.download_files(hybas_ids, datasets)
 
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     start_time = time.time()
-    hybas_ids = [1020000010, 1020011530]
-    # hybas_ids = get_hybas_ids()
-    asyncio.run(main(hybas_ids))
+    asyncio.run(main(hybas_ids=[1020000010]))
     end_time = time.time()
     print(end_time - start_time)
