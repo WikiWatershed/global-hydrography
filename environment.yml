@@ -9,12 +9,14 @@ dependencies:
   # Geospatial libs for vector data
   - scipy
   - geopandas >=0.14.1  # supports GeoParquet 1.0.0
-  - geoarrow-pyarrow  # high-performance geoarrow dtype for geometry, integrated with lonboard
-  - gdal >=3.8.5  # Note: 3.9 officially supports geoarrow, but rasterio 1.3.x does not as of May 22, 2024
+  - gdal >=3.9  # Note: 3.9 officially supports geoarrow, but rasterio 1.3.x does not as of May 22, 2024
         # rasterio 1.4 should support gdal 3.9
   - pyogrio >=0.8 # Vectorized vector I/O using GDAL/OGR, speeds up GeoPandas!
         # PostGIS supported. See https://pyogrio.readthedocs.io/en/latest/supported_formats.html 
         # and full list of drivers: https://gdal.org/drivers/vector/index.html
+  # - geoarrow-pyarrow  # high-performance geoarrow dtype for geometry, integrated with lonboard
+    # pip installing latest development versions of geoarrow-python, below
+    # to take advatage of pyogrio >=0.8 that supports gdal >=3.9
   - geojson
   - openpyxl # read/write Excel 2010+ files (.xlsx & .xlsm)
   # For MacOS
@@ -29,9 +31,10 @@ dependencies:
 
   # Hydro Data Tools
   - networkx  # For building graphs for watershed network analysis
-  - pynhd  # HyRiver: provides access to NHD+ V2 data through NLDI and WaterData web services
-  - pygeohydro # HyRiver: for accessing hydrology data through web services, 
-        # including WBD for HUC bounaries
+  # - pynhd  # HyRiver: provides access to NHD+ V2 data through NLDI and WaterData web services
+    # removing to avoid rasterio installation, which presently forces gdal<3.9
+  # - pygeohydro # HyRiver: for accessing hydrology data through web services, 
+  #       # including WBD for HUC bounaries
 
   # Database connections for exporting to PostGIS, which we may be covered by pyogrio
   # - psycopg2  
@@ -41,7 +44,7 @@ dependencies:
   - geoviews
   - datashader
   - panel >=0.14 # Major update for dashboarding
-  - selenium # for HoloViz/bokeh.io image export functions
+  # - selenium # for HoloViz/bokeh.io image export functions
   - lonboard  # fast geospatial vector visualization, built on geoarrow
   # - contextily  # retrieve tile maps from the internet. Installs RasterIO.
   - cmasher # Adds function to subset colormaps, including from HoloViz's colorcet
@@ -76,3 +79,7 @@ dependencies:
   # https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#using-pip-in-an-environment
   - pip
   - pip:
+    # latest development versions of geoarrow-python
+    # https://github.com/geoarrow/geoarrow-python?tab=readme-ov-file#installation
+    - git+https://github.com/geoarrow/geoarrow-python.git#egg=geoarrow-pyarrow&subdirectory=geoarrow-pyarrow
+    - git+https://github.com/geoarrow/geoarrow-python.git#egg=geoarrow-pandas&subdirectory=geoarrow-pandas
