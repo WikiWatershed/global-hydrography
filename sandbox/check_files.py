@@ -3,14 +3,16 @@ from pathlib import Path
 import geopandas as gpd
 import fsspec
 
+# TODO: replace all os functions with pathlib functions
+
 # Writes the file information to output.txt
 def check_files():
-    output_file_path = 'J:\\MMW\\TDX_Hydro\\output.txt'
+    output_file_path = 'J:\\MMW\\TDX_Hydro\\output.txt' 
     with open(output_file_path, 'w') as output_file:
-        for file in os.listdir('J:\\MMW\\TDX_Hydro'):
-            file_path = os.path.join('J:\\MMW\\TDX_Hydro', file)
+        for file in os.listdir('J:\\MMW\\TDX_Hydro'):  # TODO: replace with pathlib
+            file_path = os.path.join('J:\\MMW\\TDX_Hydro', file) # TODO: replace with pathlib
             try:
-                df = gpd.read_file(file_path)
+                df = gpd.read_file(file_path, engine='pyogrio', use_arrow=True,)
                 output_file.write(f"-----------------------------------------------\n")
                 output_file.write(f"File: {file}\n")
                 df.info(buf=output_file)
