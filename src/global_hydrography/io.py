@@ -23,7 +23,9 @@ class TDXHydroDownloader:
     ROOT_URL = "https://earth-info.nga.mil/php/download.php"
 
     def __init__(
-        self, filesystem: fsspec.filesystem = None, download_dir: Path = None
+        self, 
+        filesystem: fsspec.filesystem = None, 
+        download_dir: Path = None,
     ) -> None:
         self.__filesystem: fsspec.filesystem = (
             filesystem if filesystem else self.init_fsspec_filesystem()
@@ -67,11 +69,12 @@ class TDXHydroDownloader:
             )  # Temporary data directory to be .gitignored
         # create the directory if necessary
         if not data_dir.exists():
-            os.mkdir(data_dir)
+            os.mkdir(data_dir)  # TODO: replace with pathlib: `data_dir.mkdir()`
         return data_dir
 
     def get_hybas_ids(
-        self, hydrobasins_filename: str = "hydrobasins_level2"
+        self, 
+        hydrobasins_filename: str = "hydrobasins_level2",
     ) -> list[str]:
         """Downloads the large hydrobasins file and extracts the HYBAS ids from the file"""
         hydrobasins_url = f"{self.ROOT_URL}?file={hydrobasins_filename}"
