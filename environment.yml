@@ -14,10 +14,13 @@ dependencies:
   - pyogrio >=0.8 # Vectorized vector I/O using GDAL/OGR, speeds up GeoPandas!
         # PostGIS supported. See https://pyogrio.readthedocs.io/en/latest/supported_formats.html 
         # and full list of drivers: https://gdal.org/drivers/vector/index.html
+  - pyarrow >=16
   # - geoarrow-pyarrow  # high-performance geoarrow dtype for geometry, integrated with lonboard
     # pip installing latest development versions of geoarrow-python, below
     # to take advatage of pyogrio >=0.8 that supports gdal >=3.9
   - geojson
+  - python-calamine # fast i/o for all Excel & Open Doc spreadsheets, built with Rust
+    # supported by pandas >=2.2 `pd.read_excel("path_to_file.xlsb", engine="calamine")`
   - openpyxl # read/write Excel 2010+ files (.xlsx & .xlsm)
   # For MacOS
   # - qgis # FoDesktop GIS within the same env and dependancies
