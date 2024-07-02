@@ -1,4 +1,4 @@
-from geopandas import GeoDataFrame, GeoSeries
+from pandas import DataFrame, Series
 
 # The algorithm was developed back on the information provided in this paper
 # https://doi.org/10.1016/j.envsoft.2017.06.009
@@ -17,10 +17,10 @@ FINISH = "FINISH_TIME"
 ROOT = "ROOT_ID"
 
 
-def modified_nest_set_index(df: GeoDataFrame) -> GeoDataFrame:
-    """Computes the modified next set index for root nodes in GeoDataFrame
+def modified_nest_set_index(df: DataFrame) -> DataFrame:
+    """Computes the modified next set index for root nodes in DataFrame
 
-    Adds three (3) additional fields to the GeoDataFrame to store the
+    Adds three (3) additional fields to the DataFrame to store the
     modified nested set index information.
 
         DISCOVER_TIME: int
@@ -34,11 +34,11 @@ def modified_nest_set_index(df: GeoDataFrame) -> GeoDataFrame:
             that may share common DISCOVER_TIME and FINISH_TIME values to differentiate.
 
     Parameters:
-        df: GeoDataFrame
-            A GeoDataFrame object loading from a TDX Hydro datasource
+        df: DataFrame
+            A DataFrame object loading from a TDX Hydro datasource
     Returns:
-        GeoDataFrame:
-            GeoDataFrame instance containing additional fields with modified
+        DataFrame:
+            DataFrame instance containing additional fields with modified
             nested set index information.
 
     """
@@ -57,7 +57,7 @@ def modified_nest_set_index(df: GeoDataFrame) -> GeoDataFrame:
     nodes = df.to_dict(orient="index")
 
     # helper function to compute the modified nested set index for a given graph
-    def __compute_index_for_root(root: GeoSeries):
+    def __compute_index_for_root(root: Series):
         clock = 1
         left_to_process = [root]
 
