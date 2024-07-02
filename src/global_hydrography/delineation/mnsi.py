@@ -95,7 +95,7 @@ def modified_nest_set_index(df: DataFrame) -> DataFrame:
     df_msni = DataFrame(nodes)
     df_msni = df_msni.transpose()
     for f in (ROOT, DISCOVER, FINISH):
-        df[f] = df_msni[f]
+        df[f] = df_msni[f].astype('int32')
     df = df.reset_index()
 
     return df
