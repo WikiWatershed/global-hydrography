@@ -91,9 +91,11 @@ def modified_nest_set_index(df: DataFrame) -> DataFrame:
     for root in roots:
         __compute_index_for_root(root)
 
-    # convert back into a DataFrame
-    df = GeoDataFrame(nodes)
-    df = df.transpose()
-    df.reset_index()
+    # map the MNSI information back to the original DataFrame
+    df_msni = DataFrame(nodes)
+    df_msni = df_msni.transpose()
+    for f in (ROOT, DISCOVER, FINISH):
+        df[f] = df_msni[f]
+    df = df.reset_index()
 
     return df
