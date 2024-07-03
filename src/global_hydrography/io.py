@@ -103,7 +103,7 @@ class TDXHydroDownloader:
         extension: str = "gpkg",
     ) -> None:
         url = f"{self.ROOT_URL}?file={file_name}-{extension}"
-        save_path = self.__download_dir.joinpath(f"{file_name}.{extension}")
+        save_path = self.__download_dir.joinpath(f"{file_name}.{extension}") #TODO: remove file_name to preserve original filename
         try:
 
             logger.info(f"Attempting download of {url}")
