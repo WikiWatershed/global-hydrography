@@ -67,3 +67,33 @@ class TDXPreprocessor:
             # want to transform those, which is why we have this loc statement
             df.loc[df[field] > -1, field] += header_id * 10_000_000
         return df
+
+
+    def tdx_drop_useless_columns(
+        self,
+        df: GeoDataFrame,
+    ) -> GeoDataFrame:
+        """Drops columns that are of no use.
+        See `sandbox/explore_data_sources.ipynb`
+
+        Parameters:
+            df: GeoDataFrame
+                A geopandas.GeoDataFrame object.
+
+        Return:
+            GeoDataFrame:
+                A GeoDataFrame without useless fields.
+        """
+
+        useless_columns = [
+            'WSNO', # identical values to 'LINKNO'
+            'DSNODEID', # all -1
+        ]
+
+        # Only drop if in df
+        columns_to_drop = []
+        for column in useless_columns:
+            if any(df.columns.isin([column])):
+                columns_to_drop.append(column)
+
+        return df.drop(columns=columns_to_drop, inplace=True)
