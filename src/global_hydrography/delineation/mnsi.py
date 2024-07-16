@@ -44,9 +44,9 @@ def modified_nest_set_index(df: DataFrame) -> DataFrame:
     """
 
     # Add additional columns to hold the output of modified nested set index algorithm
-    df[DISCOVER] = None
-    df[FINISH] = None
-    df[ROOT] = None
+    # at column locations right after other LINK info 
+    for f in (FINISH, DISCOVER, ROOT):
+        df.insert(4, f, None)
 
     # identify all the root nodes in the DataFrame
     roots = df.loc[df[DS_LINK] == -1, LINK]
