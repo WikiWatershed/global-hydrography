@@ -1,4 +1,4 @@
-from geopandas import GeoDataFrame
+from pandas import DataFrame
 import requests
 
 GEOGLOW_TDX_HEADER_URL = "https://geoglows-v2.s3-us-west-2.amazonaws.com/tdxhydro-processing/tdx_header_numbers.json"
@@ -30,10 +30,10 @@ class TDXPreprocessor:
 
     def tdx_to_global_linkno(
         self,
-        df: GeoDataFrame,
-        tdx_id: int,
-    ) -> GeoDataFrame:
-        """Transforms LINKNOs fields of TDXHydro dataset into a globally unique LINKNOs
+        df: DataFrame,
+        tdx_hydro_region: int,
+    ) -> DataFrame:
+        """Transforms LINKNOs fields of TDXHydroRegion dataset into a globally unique LINKNOs
 
         This includes the LINKNO field but also the upstream and downstream links
 
@@ -47,22 +47,32 @@ class TDXPreprocessor:
                 https://geoglows-v2.s3-us-west-2.amazonaws.com/tdxhydro-processing/tdx_header_numbers.json
 
         Parameters:
-            df: GeoDataFrame
-                A geopandas.GeoDataFrame object.
-            tdx_header_id: int
-                The integer id of the TDX hydro dataset
+            df: DataFrame
+                A pandas.DataFrame or geopandas.GeoDataFrame object.
+            tdx_hydro_region: int
+                The 10-digit integer id of the TDX Hydro dataset used in filenames
+                and corresponding to HydroBasins Level 2 codes.
 
         Return:
-            GeoDataFrame:
-                A GeoDataFrame with the appropriate globally unique conversions applied to to linkid fields.
+            DataFrame:
+                A DataFrame or GeoDataFrame with the appropriate globally unique conversions applied to to linkid fields.
 
 
         """
 
-        fields = ["LINKNO", "DSLINKNO", "USLINKNO1", "USLINKNO2"]
+        fields = [
+            "LINKNO", "DSLINKNO", "USLINKNO1", "USLINKNO2", # For streamnet files
+            'streamID', # For basins files. Identical to "LINKNO".
+        ]
 
-        header_id = int(self.tdx_header_crosswalk[tdx_id])
+        # Only use fields if in df
+        fields_to_use = []
         for field in fields:
+            if any(df.columns.isin([field])):
+                fields_to_use.append(field)
+
+        header_id = int(self.tdx_header_crosswalk[tdx_hydro_region])
+        for field in fields_to_use:
             # note that fields with -1 indicate no link and we do not
             # want to transform those, which is why we have this loc statement
             df.loc[df[field] > -1, field] += header_id * 10_000_000
@@ -71,18 +81,18 @@ class TDXPreprocessor:
 
     def tdx_drop_useless_columns(
         self,
-        df: GeoDataFrame,
-    ) -> GeoDataFrame:
+        df: DataFrame,
+    ) -> DataFrame:
         """Drops columns that are of no use.
         See `sandbox/explore_data_sources.ipynb`
 
         Parameters:
-            df: GeoDataFrame
-                A geopandas.GeoDataFrame object.
+            df: DataFrame
+                A pandas.DataFrame or geopandas.GeoDataFrame object.
 
         Return:
-            GeoDataFrame:
-                A GeoDataFrame without useless fields.
+            DataFrame:
+                A DataFrame or GeoDataFrame without useless fields.
         """
 
         useless_columns = [
