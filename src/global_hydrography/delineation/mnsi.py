@@ -15,6 +15,7 @@ DS_LINK = "DSLINKNO"
 DISCOVER = "DISCOVER_TIME"
 FINISH = "FINISH_TIME"
 ROOT = "ROOT_ID"
+MNSI_FIELDS = [ROOT, FINISH, DISCOVER]
 
 
 def modified_nest_set_index(df: DataFrame) -> DataFrame:
