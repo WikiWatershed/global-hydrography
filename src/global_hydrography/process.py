@@ -4,6 +4,7 @@ import pyogrio
 import geopandas as gpd
 import pandas as pd
 
+from global_hydrography.delineation.mnsi import MNSI_FIELDS
 from global_hydrography.preprocess import TDXPreprocessor
 from global_hydrography.delineation.mnsi import MNSI_FIELDS, DISCOVER, FINISH, ROOT
 from global_hydrography.delineation import subset_network
@@ -43,6 +44,7 @@ def select_tdx_files(
 def create_basins_mnsi(
     basins_gdf: gpd.GeoDataFrame,
     streams_mnsi_gdf: gpd.GeoDataFrame,
+    fields_to_copy:list[str]=MNSI_FIELDS
 ) -> tuple[gpd.GeoDataFrame]:
     """Create Basins GeoDataFrame with MNSI fields from streamnet_mnsi_gdf.
 
@@ -59,7 +61,7 @@ def create_basins_mnsi(
     # potentially creating some rows with no basin geometries
     basins_mnsi_gdf = pd.merge(
         basins_gdf,
-        streams_mnsi_gdf[MNSI_FIELDS],
+        streams_mnsi_gdf[fields_to_copy],
         how="right",
         on="LINKNO",
     )
