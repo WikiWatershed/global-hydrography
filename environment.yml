@@ -86,3 +86,4 @@ dependencies:
     # https://github.com/geoarrow/geoarrow-python?tab=readme-ov-file#installation
     - git+https://github.com/geoarrow/geoarrow-python.git#egg=geoarrow-pyarrow&subdirectory=geoarrow-pyarrow
     - git+https://github.com/geoarrow/geoarrow-python.git#egg=geoarrow-pandas&subdirectory=geoarrow-pandas
+    - git+https://github.com/geoarrow/geoarrow-python.git#egg=geoarrow-types&subdirectory=geoarrow-types
