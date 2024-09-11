@@ -30,18 +30,20 @@ def process_tdx_streams_basins(
     """Process a pair of TDXHydro streamnet and streamreach_basins files for 
     a given TDX Hydro Region, creating a set of GeoParquet files ready for use 
     by Model My Watershed. This processing includes:
-    - Reads the 'TDX_streamnet*.gpkg' file provided by NGA, converts LINKNO fields to 
-    globally unique values, calculates and adds three new Modified Nested Set Index (MNSI) 
-    fields, drops useless fields, and sets LINKNO as the index.
-    - Reads the 'TDX_streareach_basins*.gpkg' file provided by NGA, renames 'streamID' 
-    to LINKNO, converts LINKNO to globally unique values, and sets LINKNO as the index.
-    - Moves MNSI fields from streament to basins datasets, saving a dataset of streams
-    that don't have a matching basin geometry.
+    - Reads the 'TDX_streamnet*.gpkg' file provided by NGA, converts LINKNO 
+    fields to globally unique values, calculates and adds three new Modified 
+    Nested Set Index (MNSI) fields, drops useless fields, and sets LINKNO as 
+    the index.
+    - Reads the 'TDX_streareach_basins*.gpkg' file provided by NGA, renames 
+    'streamID' to LINKNO, converts LINKNO to globally unique values, and sets 
+    LINKNO as the index.
+    - Moves MNSI fields from streament to basins datasets, saving a dataset of 
+    streams that don't have a matching basin geometry.
     - Saves three output datasets to GeoParquet files in the output directory.
 
     Parameters:
-        input_dir: Directory with raw TDX Hydro GeoPackage ('.gpkg') files.
-        output_dir: Directory for saving processed GeoParquet ('.parquet') files.
+        input_dir: Directory with raw TDX Hydro GeoPackage ('.gpkg') files
+        output_dir: Directory to save processed GeoParquet ('.parquet') files
         tdx_hydro_region: The 10-digit TDX Hydro Region
         preprocessor: An instance of the TDXPreprocessor class.
 
@@ -53,7 +55,10 @@ def process_tdx_streams_basins(
     # Get file paths
     print (f"Processing TDXHydroRegion = {tdx_hydro_region}")
     streamnet_file, basins_file = gh.process.select_tdx_files(
-        input_dir, tdx_hydro_region,'.gpkg')
+        input_dir, 
+        tdx_hydro_region,
+        '.gpkg'
+    )
     
 
     ## Process streamnet file ##
@@ -64,7 +69,12 @@ def process_tdx_streams_basins(
     )
     
     # open streamnet file as GeoDataFrame
-    streamnet_gdf = gpd.read_file(streamnet_file, engine='pyogrio', layer=0, use_arrow=True)
+    streamnet_gdf = gpd.read_file(
+        streamnet_file, 
+        engine='pyogrio', 
+        layer=0, 
+        use_arrow=True,
+    )
 
     # apply preprocessing to make linkno globally unique
     preprocessor.tdx_to_global_linkno(streamnet_gdf, tdx_hydro_region)
@@ -72,12 +82,21 @@ def process_tdx_streams_basins(
     # apply preprocessing to make drop columns with no value
     preprocessor.tdx_drop_useless_columns(streamnet_gdf)
 
-    # compute the modified nested set index
+    # compute the modified nested set index, no copy
     print('  Computing: modified nested set index')
     streamnet_gdf = gh.mnsi.modified_nest_set_index(streamnet_gdf)
 
     # Set 'LINKNO' as index, to facilitate selection
     streamnet_gdf.set_index('LINKNO', inplace=True)
+    # streamnet_gdf.sort_index(inplace=True) # larger files without speedup!
+
+    # Compute predissolve group, no copy
+    print('  Computing: dissolve groups')
+    streamnet_gdf = compute_dissolve_groups(
+        streamnet_gdf, 
+        max_elements=200, 
+        min_elements=125,
+    )
 
 
     ## Process basins file ##
@@ -86,26 +105,30 @@ def process_tdx_streams_basins(
     print(f"  Reading: layer = {basins_info['layer_name']}")
 
     # open basins file as GeoDataFrame
-    basins_gdf = gpd.read_file(basins_file, engine='pyogrio', layer=0, use_arrow=True)
-
-    # Rename 'streamID' to 'LINKNO' to facilitate interoperability 
+    basins_gdf = gpd.read_file(
+        basins_file, 
+        engine='pyogrio', 
+        layer=0, 
+        use_arrow=True,
+    )
+    # Rename 'streamID' to 'LINKNO' and in32 to facilitate interoperability 
     # with streamnet files
     basins_gdf.rename(columns={'streamID':'LINKNO'}, inplace=True)
+    basins_gdf['LINKNO'] = basins_gdf['LINKNO'].astype('int32')
     
     # apply preprocessing to make linkno globally unique
     preprocessor.tdx_to_global_linkno(basins_gdf, tdx_hydro_region)
 
     # Set 'LINKNO' as index, to facilitate selection
     basins_gdf.set_index('LINKNO', inplace=True)
-
-    #compute predissolve group
-    basins_mnsi_gdf = compute_dissolve_groups(basins_mnsi_gdf, max_elements=200, min_elements=125,)
+    # basins_gdf.sort_index(inplace=True) # larger files without speedup!
 
     
     ## Move MNSI fields from streamnet to basins ##
-    fields_to_copy = [*MNSI_FIELDS, DISSOLVE_ROOT_ID, ELEMENT_COUNT]
+    fields_to_copy = [*MNSI_FIELDS, ELEMENT_COUNT, DISSOLVE_ROOT_ID]
     print(f"  Moving MNSI files from streamnet to basins datasets.")
-    basins_mnsi_gdf, streams_no_basin_gdf = gh.process.create_basins_mnsi(
+    # Move fields, no copy 
+    basins_gdf, streams_no_basin_gdf = gh.process.create_basins_mnsi(
         basins_gdf,
         streamnet_gdf,
         fields_to_copy=fields_to_copy
@@ -114,10 +137,11 @@ def process_tdx_streams_basins(
     #we now wish to retain this information
     #streamnet_gdf.drop(columns=gh.mnsi.MNSI_FIELDS, inplace=True)
 
+
     ## Write GeoParquet files ##
     gdf_dict = {
-        'streamnet': streamnet_gdf,
-        'streamreach_basins_mnsi': basins_mnsi_gdf,
+        'streamnet_mnsi': streamnet_gdf,
+        'streamreach_basins_mnsi': basins_gdf,
         'streams_no_basin': streams_no_basin_gdf,
     }
     parquet_paths = []
@@ -129,7 +153,7 @@ def process_tdx_streams_basins(
 
     return parquet_paths
 
-#help function to get all TDX regions from input file
+# Helper function to get all TDX regions from input file
 def get_tdx_regions(input_dir:Path) -> list[int]:
     tdx_regions = Counter()
 
@@ -141,6 +165,7 @@ def get_tdx_regions(input_dir:Path) -> list[int]:
             tdx_regions[tdx_region] = True
 
     return tdx_regions.keys()
+
 
 def main() -> None:
     #regions = get_tdx_regions(INPUT_DIR)

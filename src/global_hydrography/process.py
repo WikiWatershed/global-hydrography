@@ -87,7 +87,7 @@ def compute_dissolve_groups(
     """Adds additional field to indicating downstream most linkid of dissolve group
 
     Args:
-        gdf (gpd.GeoDataFrame): GeoDataFrame object for the basins layer
+        gdf (gpd.GeoDataFrame): Hydrography dataset with MNSI fields and LINKNO as index
         max_elements (int, optional): Maximum number of upstream elements to pre-dissolve.
             Defaults to 200.
         min_elements (int, optional): Minimum number of upstream elements to pre-dissolve.
@@ -110,28 +110,31 @@ def compute_dissolve_groups(
 
     # we'll use the upstream element count for aggregation, initial this can be
     # determined using nested set indices. Later we'll need a new method.
-    gdf[ELEMENT_COUNT] = gdf[FINISH] - gdf[DISCOVER]
-    gdf[DISSOLVE_ROOT_ID] = None
+    insert_loc = gdf.columns.get_loc(FINISH) + 1
+    gdf.insert(insert_loc, ELEMENT_COUNT, gdf[FINISH] - gdf[DISCOVER])
+    gdf.insert(insert_loc+1, DISSOLVE_ROOT_ID, None)
 
     previous = gdf[ROOT].count()
     while gdf.loc[gdf[DISSOLVE_ROOT_ID].isnull(), ROOT].count() > max_elements:
         gdf = __identify_dissolve_groups(gdf, max_elements, _min_elements)
         remaining = gdf.loc[gdf[DISSOLVE_ROOT_ID].isnull(), ROOT].count()
-        print(f"Previous elements {previous}, new elements {remaining}")
+        print(f"    Previous elements {previous}, new elements {remaining}")
         # if we failed to make any dissolve progress, lower the threshold.
         if previous == remaining:
             _min_elements -= 25
-            print(f"No progress was made. New min threshold is {_min_elements}")
+            print(f"    No progress was made. New min threshold is {_min_elements}")
             continue
         elif _min_elements != min_elements:
             _min_elements = min_elements
-            print(f"Min threshold reset to {min_elements}")
+            print(f"    Min threshold reset to {min_elements}")
 
         previous = remaining
 
         gdf = __update_element_counts(gdf)
 
-    gdf = gdf.drop(columns=[ELEMENT_COUNT])
+    gdf[DISSOLVE_ROOT_ID] = gdf[DISSOLVE_ROOT_ID].astype('int32')
+    # gdf = gdf.drop(columns=[ELEMENT_COUNT])
+    print(f"    Dissolve Groups completed!")
     return gdf
 
 
