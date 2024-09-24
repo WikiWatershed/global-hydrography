@@ -50,21 +50,22 @@ dependencies:
   - geoviews
   - datashader
   - panel >=0.14 # Major update for dashboarding
+  - cmasher # Adds function to subset colormaps, including from HoloViz's colorcet
   # - selenium # for HoloViz/bokeh.io image export functions
   - lonboard  # fast geospatial vector visualization, built on geoarrow
   # - contextily  # retrieve tile maps from the internet. Installs RasterIO.
-  - cmasher # Adds function to subset colormaps, including from HoloViz's colorcet
 
   # Interactivity via Jupyter Notebooks
   - jupyterlab
   - nodejs  # required for many extensions
   - ipympl  # jupyter-matplotlib, https://github.com/matplotlib/ipympl
-  - ipywidgets  # Required for HoloViz interactivity
-  - jupyter_bokeh # To help with dynamic HoloViz rendering?
+  - ipywidgets  # Interactive HTML widgets for Jupyter
+  - jupyter_bokeh # Renders Holviz / Bokeh objects in Jupyter
+  - pyviz_comms # bidirectional communication between Python & JavaScript for Jupyter
 
-  # Dev tools: Language Server Protocol (LSP) (Optional), for...
+  # Dev tools: Language Server Protocol (LSP) (Optional), for:
     # code navigation + hover suggestions + linters + autocompletion + rename
-  - python-lsp-server >=1.6 # LSP extension for Python (pylsp), including:
+  - python-lsp-server # LSP extension for Python (pylsp), including:
     # Rope for Completions and renaming
     # Pyflakes linter to detect various errors
     # McCabe linter for complexity checking
@@ -77,7 +78,7 @@ dependencies:
   - pylsp-mypy  # MyPy type checking for Python >=3.7.
   - jupyterlab-lsp # Provides both server extension and lab extension
 
-  # package management
+  # Environment and package management
   - conda
   - conda-build
   - conda-libmamba-solver

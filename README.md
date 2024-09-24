@@ -64,7 +64,7 @@ Activate the environment using the instructions printed by conda after the envir
 To update your environment run the following command:  
 
 ```shell
-conda env update --file environment.yml --solver=libmamba --prune 
+conda env update -f environment.yml --solver=libmamba --prune 
 ```
 
 
