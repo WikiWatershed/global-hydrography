@@ -66,9 +66,9 @@ def create_basins_mnsi(
         on="LINKNO",
     )
     # Save streamnet rows that don't have a basin geometry
-    streams_no_basin_gdf = streams_mnsi_gdf[basins_mnsi_gdf.geometry == None].copy(
-        deep=True
-    )
+    streams_no_basin_gdf = streams_mnsi_gdf.loc[
+        basins_mnsi_gdf[basins_mnsi_gdf.geometry == None].index
+    ].copy(deep=True)
 
     # Drop no-geometry rows from basins gdf
     basins_mnsi_gdf.drop(
