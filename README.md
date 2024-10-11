@@ -83,7 +83,7 @@ You should now be able to run the examples and create your own Jupyter Notebooks
 # Modified Nested Set Index
 
 # How to Use the Modified Nested Set Index Results 
-The repository provides an implementation of a modified nested set index algorithm. This algorithm is a modified depth-first search algorithm that visits each node twice; recording both the discover time (number of steps to visit the node once) and the finish time (number of steps to visit the node a second time). The discover and finish time values provide a method to select all upstream elements on a target node by selected nodes where the `discovery time >= target discover time` and the `finish time <= target finish time`.
+The repository provides an implementation of a modified nested set index algorithm based on the work of [Haag and Shokoufandeh (2019)](https://doi.org/10.1016/j.envsoft.2017.06.009). This algorithm is a modified depth-first search algorithm that visits each node twice; recording both the discover time (number of steps to visit the node once) and the finish time (number of steps to visit the node a second time). The discover and finish time values provide a method to select all upstream elements on a target node by selected nodes where the `discovery time >= target discover time` and the `finish time <= target finish time`.
 
 ## Example application
 Consider the following graph representing a watershed, for which the modified nested set algorithm has been applied. The discover time (d) and finish time (f) values are reported next to the nodes. 
