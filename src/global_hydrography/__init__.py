@@ -12,4 +12,5 @@ from global_hydrography import (
 
 from global_hydrography.delineation import (
     mnsi,
+    delineate,
 )

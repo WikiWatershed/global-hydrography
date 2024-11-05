@@ -26,6 +26,9 @@ def select_tdx_files(
         directory_path: Local directory path to where files are located.
         tdxhydroregion: 10-digit region code used to organize TDXHydro files
             and taken from HydroBASINS Level 2 IDs.
+    
+    Returns: 
+        tuple: file paths for streamnet and basins files.
     """
     for item in directory_path.iterdir():
         if (
