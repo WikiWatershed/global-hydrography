@@ -15,7 +15,7 @@ TDX-Hydro was built around [HydroSHEDS v1 HydroBASINS](https://www.hydrosheds.or
 
 ## Demonstration for AWSMOD1 Task 5: Add Global Watershed Shapes
 
-Project Objectives: Develop [Model My Watershed](https://modelmywatershed.org) hydrographic capabilities over most of the world to:
+Project Objectives: Develop [Model My Watershed](https://modelmywatershed.org) hydrographic capabxilities over most of the world to:
 
 - Display river network “bluelines” (polylines), with zoom-dependent rendering by reach size.
 - Display drainage basin boundaries (polygons) for multiple levels of sub-basins, with zoom-dependent enabling of different levels.
@@ -93,5 +93,3 @@ Consider the following graph representing a watershed, for which the modified ne
 
 If we wanted to select the upstream elements for the node boxed in red, we can use the discover and finish time values. The elements in blue satisfy the conditions `d>=5` (with 5 being the d value from the selected node) and `f<=9` (with 9 being the f value of the selected node).
 ![image selected-graph](./doc/imgs/selected_mnsi.jpg)
-
-

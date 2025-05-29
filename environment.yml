@@ -60,6 +60,7 @@ dependencies:
   - nodejs  # required for many extensions
   - ipympl  # jupyter-matplotlib, https://github.com/matplotlib/ipympl
   - ipywidgets  # Interactive HTML widgets for Jupyter
+  - ipywidgets_bokeh
   - jupyter_bokeh # Renders Holviz / Bokeh objects in Jupyter
   - pyviz_comms # bidirectional communication between Python & JavaScript for Jupyter
 
